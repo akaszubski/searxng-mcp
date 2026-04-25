@@ -1,0 +1,42 @@
+# SearXNG instance for use with the searxng-mcp server.
+# Run on each machine that needs local web research:
+#   docker compose up -d
+#
+# OrbStack auto-provisions DNS at https://searxng.docker.orb.local/ from the
+# `searxng` service name; the MCP server's default backend matches that.
+
+services:
+  searxng:
+    image: ghcr.io/searxng/searxng:latest
+    container_name: localclaude-searxng
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"   # loopback only — never expose to LAN/internet
+    environment:
+      # JSON output is required for the MCP server. Setting via env so the
+      # default settings.yml inside the image picks it up without us
+      # bind-mounting a custom config file.
+      - SEARXNG_BASE_URL=http://searxng/
+      - SEARXNG_SECRET=${SEARXNG_SECRET:-localclaude-searxng-default-change-me}
+    volumes:
+      - ./searxng-config:/etc/searxng:rw
+    networks:
+      default:
+        aliases:
+          - searxng    # so https://searxng.docker.orb.local/ resolves regardless of container_name
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
+networks:
+  default:
+    name: localclaude_default

@@ -1,0 +1,34 @@
+# Minimal SearXNG config for searxng-mcp. The image ships sane defaults; we
+# only override what we need:
+#   - enable JSON output (the MCP server consumes /search?format=json)
+#   - silence the bot-detector (we're a single-user trusted client)
+#   - sane defaults for language + safe search
+#
+# Full reference: https://docs.searxng.org/admin/settings/index.html
+
+use_default_settings: true
+
+server:
+  secret_key: "localclaude-searxng-default-change-me"
+  limiter: false                 # no rate-limiting for trusted local use
+  image_proxy: false
+  bind_address: "0.0.0.0"
+  port: 8080
+
+search:
+  formats:
+    - html
+    - json                       # ← required by the MCP server
+  safe_search: 0
+  default_lang: en
+  ban_time_on_fail: 0
+  max_ban_time_on_fail: 0
+
+ui:
+  static_use_hash: true
+
+outgoing:
+  request_timeout: 10.0
+  max_request_timeout: 30.0
+  pool_connections: 50
+  pool_maxsize: 100
