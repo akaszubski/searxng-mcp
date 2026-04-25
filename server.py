@@ -4,8 +4,9 @@ SearXNG container, so Claude Code (and any MCP-compatible client) can do real
 web research without going through Anthropic's WebSearch (which is a no-op
 against a local vllm-mlx server).
 
-Default backend: https://searxng.docker.orb.local/  (OrbStack)
-Override via env:  SEARXNG_URL=http://other-host:8080
+Default backend: http://127.0.0.1:8080  (works on any host that ran the
+included docker compose, regardless of OrbStack DNS plumbing).
+Override via env:  SEARXNG_URL=https://searxng.docker.orb.local
 """
 
 from __future__ import annotations
@@ -16,11 +17,12 @@ import re
 import httpx
 from mcp.server.fastmcp import FastMCP
 
-SEARXNG_URL = os.environ.get("SEARXNG_URL", "https://searxng.docker.orb.local").rstrip("/")
+SEARXNG_URL = os.environ.get("SEARXNG_URL", "http://127.0.0.1:8080").rstrip("/")
 HTTP_TIMEOUT = float(os.environ.get("SEARXNG_TIMEOUT", "30"))
 
-# OrbStack uses self-signed certs internally — verify=False is fine for a
-# loopback/LAN container. Override SEARXNG_VERIFY=1 if you want strict TLS.
+# Loopback containers usually use self-signed certs; verify=False is fine.
+# Set SEARXNG_VERIFY=1 to enable strict TLS (e.g., when pointing at a
+# public-internet SearXNG).
 VERIFY_TLS = os.environ.get("SEARXNG_VERIFY", "0") == "1"
 
 mcp = FastMCP("searxng")
