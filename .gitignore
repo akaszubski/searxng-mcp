@@ -1,6 +1,35 @@
+# Python venv (created per-machine by install.sh / docker compose)
 .venv/
 __pycache__/
 *.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS / editor
 .DS_Store
+Thumbs.db
 *.swp
+*.swo
+.vscode/
+.idea/
+
+# Logs
 *.log
+
+# Secrets -- never commit. Override the default secret_key via the
+# SEARXNG_SECRET environment variable (read by docker-compose.yml).
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+secrets.json
+credentials.json
+.secrets/
+
+# Local SearXNG state (per-machine cache / overrides)
+searxng-config/settings.local.yml
+searxng-state/
