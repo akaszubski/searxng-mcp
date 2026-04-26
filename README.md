@@ -19,11 +19,15 @@ your own SearXNG, so research works the same way locally.
 
 ## Install (per machine)
 
-```bash
-git clone https://github.com/akaszubski/searxng-mcp ~/Dev/searxng-mcp
-cd ~/Dev/searxng-mcp
+This repo lives inside the [`local-claude-code-mlx`](../) umbrella, but
+works standalone too. From the umbrella root (or wherever you cloned it):
 
-# 1. Start SearXNG in a container
+```bash
+cd searxng-mcp
+
+# 1. Start SearXNG in a container (loopback :8080).
+#    Container is named `localclaude-searxng` with `restart: unless-stopped`,
+#    so it auto-comes-back across reboots once OrbStack/Docker is up.
 docker compose up -d
 
 # 2. Install MCP server deps in a venv
@@ -31,14 +35,28 @@ python3 -m venv .venv
 .venv/bin/pip install mcp httpx
 
 # 3. Sanity check both are alive
-curl -sk 'https://searxng.docker.orb.local/search?q=test&format=json' | head -c 80
+curl -sf -o /dev/null http://127.0.0.1:8080/ && echo "SearXNG up"
 ./run.sh < /dev/null > /dev/null 2>&1 && echo "MCP server starts cleanly"
+```
+
+Standalone install:
+
+```bash
+git clone https://github.com/akaszubski/searxng-mcp ~/Dev/searxng-mcp
+cd ~/Dev/searxng-mcp
+# then steps 1-3 above
 ```
 
 ## Register with Claude Code
 
 ```bash
-claude mcp add searxng -- ~/Dev/searxng-mcp/run.sh
+claude mcp add searxng -- "$(pwd)/run.sh"   # run from inside searxng-mcp/
+```
+
+Or explicit path:
+
+```bash
+claude mcp add searxng -- ~/Dev/local-claude-code-mlx/searxng-mcp/run.sh
 ```
 
 Or add manually to `~/.claude.json` under the `mcpServers` key:
@@ -78,12 +96,17 @@ Fetches a URL, strips HTML, returns text. Truncates to `max_chars` (default 8K).
 
 ## Use with localclaude
 
-Pair with `localclaude -allowlist all` so the optimizer doesn't filter out
-the new MCP tools:
+The default `code` allowlist already includes `mcp__searxng__search` and
+`mcp__searxng__fetch`, so no extra flags are needed:
 
 ```bash
-localclaude start coder -allowlist all
+localclaude start coder
 ```
 
-Or extend the `code` allowlist in `localclaude` to include
-`mcp__searxng__search,mcp__searxng__fetch`.
+`localclaude start` also auto-brings-up the OrbStack engine and the
+`localclaude-searxng` container if either is down — see
+[`localclaude/README.md`](../localclaude/README.md#searxng-auto-start-behavior).
+
+Use `-allowlist all` only if you want every MCP tool you've registered with
+Claude Code to pass through (Gmail, Calendar, etc.) — at the cost of much
+slower first-prefill.
